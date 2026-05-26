@@ -1,0 +1,6 @@
+{
+  "name": "CyberSOC Packet Simulator",
+  "description": "Educational network packet sniffer simulation and traffic analyzer with a cybersecurity dashboard UI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
