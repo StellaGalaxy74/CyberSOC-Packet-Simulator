@@ -17,8 +17,12 @@ import { NetworkMap } from './components/NetworkMap';
 import { CyberScore } from './components/CyberScore';
 import { AttackSimulator } from './components/AttackSimulator';
 import { VoiceAssistant } from './components/VoiceAssistant';
+import { ThreatHunting } from './components/ThreatHunting';
+import { IncidentManagement } from './components/IncidentManagement';
+import { DeviceInventory } from './components/DeviceInventory';
+import { ReportsCompliance } from './components/ReportsCompliance';
 
-type ViewMode = 'dashboard' | 'nexus' | 'map' | 'alerts' | 'simulator';
+type ViewMode = 'dashboard' | 'nexus' | 'map' | 'alerts' | 'simulator' | 'hunting' | 'incidents' | 'inventory' | 'reports';
 
 export default function App() {
   const [activeView, setActiveView] = useState<ViewMode>('dashboard');
@@ -208,12 +212,12 @@ export default function App() {
             
             <div className="hidden md:block text-[10px] uppercase font-mono tracking-widest text-gray-500 px-4 mt-4 mb-1">Operations (SOC)</div>
             <NavButton active={activeView === 'simulator'} onClick={() => setActiveView('simulator')} icon={<MonitorPlay size={18} />} label="Attack Simulation Lab" variant="orange" />
-            <NavButton active={false} onClick={() => {}} icon={<Search size={18} />} label="Threat Hunting" variant="gray" />
-            <NavButton active={false} onClick={() => {}} icon={<Shield size={18} />} label="Incident Management" variant="gray" />
+            <NavButton active={activeView === 'hunting'} onClick={() => setActiveView('hunting')} icon={<Search size={18} />} label="Threat Hunting" variant={activeView === 'hunting' ? 'cyan' : 'gray'} />
+            <NavButton active={activeView === 'incidents'} onClick={() => setActiveView('incidents')} icon={<Shield size={18} />} label="Incident Management" variant={activeView === 'incidents' ? 'cyan' : 'gray'} />
             
             <div className="hidden md:block text-[10px] uppercase font-mono tracking-widest text-gray-500 px-4 mt-4 mb-1">System</div>
-            <NavButton active={false} onClick={() => {}} icon={<Hexagon size={18} />} label="Device Inventory" variant="gray" />
-            <NavButton active={false} onClick={() => {}} icon={<LayoutDashboard size={18} />} label="Reports & Compliance" variant="gray" />
+            <NavButton active={activeView === 'inventory'} onClick={() => setActiveView('inventory')} icon={<Hexagon size={18} />} label="Device Inventory" variant={activeView === 'inventory' ? 'cyan' : 'gray'} />
+            <NavButton active={activeView === 'reports'} onClick={() => setActiveView('reports')} icon={<LayoutDashboard size={18} />} label="Reports & Compliance" variant={activeView === 'reports' ? 'cyan' : 'gray'} />
          </nav>
          
          <div className="p-4 border-t border-gray-800 hidden md:block shrink-0 sticky bottom-0 bg-[#030712]">
@@ -251,6 +255,10 @@ export default function App() {
                   {activeView === 'map' && 'Network Topology Map'}
                   {activeView === 'alerts' && 'Threat Detections'}
                   {activeView === 'simulator' && <span className="text-orange-400 flex items-center"><Shield className="mr-2 shrink-0"/> Attack Simulator Lab</span>}
+                  {activeView === 'hunting' && 'Threat Hunting'}
+                  {activeView === 'incidents' && 'Incident Management'}
+                  {activeView === 'inventory' && 'Device Inventory'}
+                  {activeView === 'reports' && 'Reports & Compliance'}
                   
                   {wallboardMode && <span className="text-xs bg-cyan-900/40 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/30 uppercase tracking-widest font-mono ml-2 shrink-0">Wallboard LIVE</span>}
                </h2>
@@ -409,8 +417,10 @@ export default function App() {
                   </div>
                   
                   <div className="space-y-3">
-                     {packets.filter(p => p.isSuspicious).slice(0, 20).map((threat, i) => (
-                        <div key={i} className="bg-gray-900/50 border border-gray-800 rounded p-4 flex items-start gap-4 hover:border-red-900/50 transition-colors cursor-pointer" onClick={() => {
+                     {packets.filter(p => p.isSuspicious).slice(0, 20).map((threat, i) => {
+                        const isHighSeverity = threat.threatType === 'DDoS Attempt' || (threat.reputationScore ?? 0) > 80;
+                        return (
+                        <div key={i} className={`rounded p-4 flex items-start gap-4 hover:border-red-900/50 transition-all cursor-pointer ${isHighSeverity ? 'bg-red-950/10 border border-red-900/30 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.05)]' : 'bg-gray-900/50 border border-gray-800'}`} onClick={() => {
                            setSelectedPacket(threat);
                            setActiveView('nexus');
                         }}>
@@ -440,7 +450,8 @@ export default function App() {
                               </button>
                            </div>
                         </div>
-                     ))}
+                        );
+                     })}
                      {packets.filter(p => p.isSuspicious).length === 0 && (
                         <div className="h-64 flex items-center justify-center text-gray-500">
                            No threats detected in current session buffer.
@@ -469,6 +480,11 @@ export default function App() {
                   </div>
                </div>
             )}
+            
+            {activeView === 'hunting' && <ThreatHunting packets={packets} />}
+            {activeView === 'incidents' && <IncidentManagement />}
+            {activeView === 'inventory' && <DeviceInventory />}
+            {activeView === 'reports' && <ReportsCompliance />}
          </main>
       </div>
 
